@@ -13,16 +13,20 @@ MVP d’application web interactive pour cartographier la couverture de détecti
 
 ## Démarrage
 
+L’application n’a aucune dépendance et ne nécessite aucune installation. Servez le dossier avec n’importe quel serveur statique, par exemple :
+
 ```bash
-npm run start
+python3 -m http.server 5173
 ```
 
 L’application est ensuite disponible sur http://localhost:5173/.
 
-## Build de production
+## Validation
+
+Le projet ne comporte pas d’étape de build. Pour vérifier la syntaxe JavaScript avant de livrer :
 
 ```bash
-npm run build
+node --check src/main.js
 ```
 
 ## Accès depuis GitHub Pages
