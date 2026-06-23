@@ -72,7 +72,7 @@ Valide la syntaxe JavaScript.
 - Maintenir une interface responsive sur mobile, tablette et desktop.
 - Préserver les libellés explicites des champs et contrôles.
 - Éviter les interactions qui ne fonctionnent qu’à la souris.
-- Conserver une hiérarchie claire des titres et sections : contexte, référentiels, exigences, stratégie.
+- Conserver une hiérarchie claire des titres et sections : contexte, scénario de menace, heatmap, plan d’action.
 
 ### Style de code
 
@@ -105,10 +105,10 @@ python3 -m http.server 5173
 
 Puis vérifier manuellement dans le navigateur que :
 
-- les référentiels peuvent être sélectionnés et désélectionnés ;
 - les champs de contexte se mettent à jour ;
-- les curseurs de maturité, criticité et effort recalculent les scores ;
-- la roadmap reste triée par priorité ;
+- changer de scénario de menace recalcule la couverture pondérée et retrie le plan d’action ;
+- cliquer sur une cellule de la heatmap fait évoluer son statut (aveugle → partielle → couverte) ;
+- le plan d’action reste trié par priorité ;
 - l’export JSON contient les informations attendues.
 
 ## Publication GitHub Pages
