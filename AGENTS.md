@@ -18,26 +18,25 @@ Le dépôt contient une application front-end volontairement simple, sans étape
 ## Structure du dépôt
 
 - `index.html` : point d’entrée HTML de l’application.
-- `src/main.js` : logique applicative, état en mémoire, données des exigences, calculs de score, rendu HTML et gestion des événements.
+- `src/main.js` : logique applicative, état en mémoire, données des techniques ATT&CK, calculs de score, rendu HTML et gestion des événements.
 - `src/styles.css` : styles globaux, mise en page responsive et apparence des composants.
 - `README.md` : documentation utilisateur pour démarrer, valider et publier l’application.
-- `package.json` : métadonnées npm et scripts de maintenance.
+
+Le projet n’a aucune dépendance npm : pas de `package.json`, pas d’étape d’installation.
 
 ## Commandes utiles
 
-Utiliser les scripts npm existants :
-
 ```bash
-npm run start
+python3 -m http.server 5173
 ```
 
-Démarre un serveur statique Python sur `http://localhost:5173/`.
+Démarre un serveur statique sur `http://localhost:5173/`.
 
 ```bash
-npm run build
+node --check src/main.js
 ```
 
-Valide la syntaxe JavaScript avec `node --check src/main.js`.
+Valide la syntaxe JavaScript.
 
 ## Principes de maintenance
 
@@ -95,13 +94,13 @@ Valide la syntaxe JavaScript avec `node --check src/main.js`.
 Avant de proposer une modification, exécuter au minimum :
 
 ```bash
-npm run build
+node --check src/main.js
 ```
 
 Pour les changements d’interface ou de comportement utilisateur, démarrer aussi l’application avec :
 
 ```bash
-npm run start
+python3 -m http.server 5173
 ```
 
 Puis vérifier manuellement dans le navigateur que :
