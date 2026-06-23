@@ -1,15 +1,15 @@
 # TrainingSteerco
 
-MVP d’application web interactive pour définir une stratégie SOC à partir de MITRE ATT&CK, du référentiel PDIS de l’ANSSI et du modèle SIM3.
+MVP d’application web interactive pour cartographier la couverture de détection SOC sur la matrice MITRE ATT&CK, pondérée par un scénario de menace prioritaire.
 
 ## Fonctionnalités
 
-- Sélection des référentiels à prendre en compte : MITRE ATT&CK, PDIS ANSSI et SIM3.
-- Catalogue initial d’exigences structurées par référentiel et domaine.
-- Évaluation manuelle de chaque exigence : applicabilité, maturité actuelle, maturité cible, criticité, effort et commentaire de justification.
-- Calcul d’un score de priorité à partir de l’écart de maturité, de la criticité et de la faisabilité.
-- Génération automatique d’une stratégie d’implémentation sous forme de roadmap 0–3 mois, 3–6 mois, 6–12 mois et backlog.
-- Export JSON du contexte et de la stratégie priorisée.
+- Sélection d’un scénario de menace prioritaire (ransomware, compromission de compte/BEC, espionnage/APT, menace interne) qui pondère la pertinence de chaque technique.
+- Heatmap interactive d’un sous-ensemble représentatif des tactiques et techniques ATT&CK Enterprise, avec statut de couverture cliquable (aveugle / partielle / couverte).
+- Calcul d’une couverture globale pondérée par la pertinence des techniques pour le scénario sélectionné.
+- Plan d’action priorisé : techniques à traiter en premier, avec les sources de log à mobiliser pour combler l’écart.
+- Synthèse textuelle orientée comité de pilotage : couverture globale, angles morts critiques, sources de log à instrumenter.
+- Export JSON du contexte, du scénario et du plan d’action.
 
 ## Démarrage
 
