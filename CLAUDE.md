@@ -41,3 +41,26 @@ No automated tests exist. Before considering a change done:
 ## Deployment
 
 The app is served as-is via GitHub Pages (`index.html` at repo root, `.nojekyll` present to skip Jekyll processing). Keep asset paths relative and avoid introducing client-side routing or anything requiring server-side configuration, since there is no backend behind GitHub Pages.
+
+## GitHub write access from Claude Code on the web
+
+Push access to this repo requires the **Claude GitHub App to be installed on the
+repository** (github.com/apps/claude → Install → select `TrainingSteerco`).
+That installation is what grants write; nothing else does.
+
+Two things that look like they should grant it, but do not:
+
+- The **"Claude" OAuth authorization** (GitHub → Settings → Applications →
+  *Authorized* GitHub Apps). It only carries identity scopes — verify identity,
+  know what you can access, act on your behalf. It yields read access, never write.
+- **Environment variables / secrets** in the cloud environment settings. Git
+  credentials are never placed in the sandbox; they are injected by a proxy
+  (`GITHUB_TOKEN` reads literally `proxy-injected` inside the session), so there
+  is no token field to fill in there.
+
+Diagnosing it: read access working while writes fail with
+`403 Resource not accessible by integration` is App-installation wording, not a
+token-scope problem — check GitHub → Settings → Applications → **Installed**
+GitHub Apps before chasing personal access tokens. A synced `gh` CLI token via
+`/web-setup` is the documented alternative, but `/web-setup` runs only from a
+local terminal, never from inside a cloud session.
