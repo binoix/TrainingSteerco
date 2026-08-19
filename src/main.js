@@ -69,18 +69,90 @@ const initialCoverage = {
   T1567: 'blind', T1041: 'blind', T1114: 'blind', T1098: 'partial',
 };
 
-const state = {
-  context: {
-    organisation: 'Organisation exemple',
-    objectif: 'Réduire les angles morts de détection face aux menaces prioritaires',
-  },
-  threatProfile: 'ransomware',
-  coverage: Object.fromEntries(
+const storageKey = 'trainingsteerco-state';
+const themeStorageKey = 'trainingsteerco-theme';
+
+const defaultContext = {
+  organisation: 'Organisation exemple',
+  objectif: 'Réduire les angles morts de détection face aux menaces prioritaires',
+};
+
+const defaultThreatProfile = 'ransomware';
+
+function buildInitialCoverage() {
+  return Object.fromEntries(
     techniques.map((technique) => [technique.id, initialCoverage[technique.id] ?? 'blind']),
-  ),
+  );
+}
+
+const state = {
+  context: { ...defaultContext },
+  threatProfile: defaultThreatProfile,
+  coverage: buildInitialCoverage(),
 };
 
 const app = document.querySelector('#app');
+
+// Le contenu stocké peut dater d'une version antérieure du jeu de techniques :
+// chaque valeur est validée avant d'être reprise dans l'état.
+function loadState() {
+  let stored;
+  try {
+    stored = JSON.parse(localStorage.getItem(storageKey));
+  } catch {
+    return;
+  }
+
+  if (!stored || typeof stored !== 'object') return;
+
+  if (stored.context && typeof stored.context === 'object') {
+    for (const key of Object.keys(defaultContext)) {
+      if (typeof stored.context[key] === 'string') {
+        state.context[key] = stored.context[key];
+      }
+    }
+  }
+
+  if (Object.hasOwn(threatProfiles, stored.threatProfile)) {
+    state.threatProfile = stored.threatProfile;
+  }
+
+  if (stored.coverage && typeof stored.coverage === 'object') {
+    for (const technique of techniques) {
+      const status = stored.coverage[technique.id];
+      if (statusOrder.includes(status)) {
+        state.coverage[technique.id] = status;
+      }
+    }
+  }
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(
+      storageKey,
+      JSON.stringify({
+        context: state.context,
+        threatProfile: state.threatProfile,
+        coverage: state.coverage,
+      }),
+    );
+  } catch {
+    // Stockage indisponible (navigation privée, quota) : l'application reste utilisable en mémoire.
+  }
+}
+
+function resetState() {
+  try {
+    localStorage.removeItem(storageKey);
+  } catch {
+    // Rien à nettoyer si le stockage est indisponible.
+  }
+  state.context = { ...defaultContext };
+  state.threatProfile = defaultThreatProfile;
+  state.coverage = buildInitialCoverage();
+  render();
+}
 
 function gapFactor(status) {
   if (status === 'covered') return 0;
@@ -182,7 +254,10 @@ function render() {
             <h2>4. Plan d'action priorisé</h2>
             <p>Classé par pertinence pour le scénario de menace × écart de couverture.</p>
           </div>
-          <button id="export-json">Exporter JSON</button>
+          <div class="section-heading__actions">
+            <button id="reset-state" class="button-secondary">Réinitialiser</button>
+            <button id="export-json">Exporter JSON</button>
+          </div>
         </div>
         ${renderActionPlan(plan)}
       </section>
@@ -197,11 +272,21 @@ function render() {
   bindEvents();
 }
 
+// Le rendu se fait par interpolation de chaînes : les valeurs saisies par
+// l'utilisateur doivent être échappées avant d'atterrir dans un attribut.
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
+}
+
 function contextInput(key, label) {
   return `
     <label class="field">
       <span>${label}</span>
-      <input data-context="${key}" value="${state.context[key]}" />
+      <input data-context="${key}" value="${escapeHtml(state.context[key])}" />
     </label>
   `;
 }
@@ -222,10 +307,14 @@ function techniqueCell(technique) {
   const weight = technique.weight[state.threatProfile];
   const weightClass = weight >= 4 ? 'weight-high' : weight >= 2 ? 'weight-medium' : 'weight-low';
   const title = `${technique.id} · ${technique.name}\nPertinence (${threatProfiles[state.threatProfile]}) : ${weight}/5\nStatut : ${meta.label}\nSources de log : ${technique.dataSources.join(', ')}`;
+  // La pertinence n'est signalée visuellement que par la bordure : l'aria-label
+  // la restitue, ainsi que la tactique et le statut, pour les lecteurs d'écran.
+  const ariaLabel = `${technique.id} ${technique.name}, tactique ${technique.tactic}, pertinence ${weight} sur 5 pour le scénario ${threatProfiles[state.threatProfile]}, statut : ${meta.label}`;
   return `
-    <button class="technique-cell ${meta.className} ${weightClass}" data-technique="${technique.id}" title="${title}">
+    <button class="technique-cell ${meta.className} ${weightClass}" data-technique="${technique.id}" title="${title}" aria-label="${ariaLabel}">
       <span class="technique-id">${technique.id}</span>
       <span class="technique-name">${technique.name}</span>
+      <span class="technique-status">${meta.label}</span>
     </button>
   `;
 }
@@ -280,12 +369,14 @@ function bindEvents() {
   document.querySelectorAll('[data-context]').forEach((input) => {
     input.addEventListener('input', (event) => {
       state.context[event.target.dataset.context] = event.target.value;
+      saveState();
     });
   });
 
   document.querySelectorAll('input[name="threat"]').forEach((radio) => {
     radio.addEventListener('change', (event) => {
       state.threatProfile = event.target.value;
+      saveState();
       render();
     });
   });
@@ -295,9 +386,14 @@ function bindEvents() {
       const id = event.currentTarget.dataset.technique;
       const currentIndex = statusOrder.indexOf(state.coverage[id]);
       state.coverage[id] = statusOrder[(currentIndex + 1) % statusOrder.length];
+      saveState();
       render();
+      // render() reconstruit tout le DOM : sans cela, le focus clavier serait perdu.
+      document.querySelector(`[data-technique="${id}"]`)?.focus();
     });
   });
+
+  document.querySelector('#reset-state').addEventListener('click', resetState);
 
   document.querySelector('#export-json').addEventListener('click', () => {
     const payload = JSON.stringify(
@@ -326,4 +422,40 @@ function bindEvents() {
   });
 }
 
+// Le bouton de thème vit hors de #app (voir index.html) : contrairement au
+// reste de l'interface, il n'est jamais recréé par render(), donc son
+// écouteur se branche une seule fois ici plutôt que dans bindEvents().
+const themeToggle = document.querySelector('#theme-toggle');
+
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  themeToggle.setAttribute('aria-pressed', String(theme === 'dark'));
+  themeToggle.setAttribute('aria-label', theme === 'dark' ? 'Activer le mode clair' : 'Activer le mode sombre');
+}
+
+function initTheme() {
+  let stored;
+  try {
+    stored = localStorage.getItem(themeStorageKey);
+  } catch {
+    stored = null;
+  }
+  const theme = stored === 'dark' || stored === 'light'
+    ? stored
+    : (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  applyTheme(theme);
+}
+
+themeToggle.addEventListener('click', () => {
+  const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  try {
+    localStorage.setItem(themeStorageKey, next);
+  } catch {
+    // Stockage indisponible : le thème reste actif pour la session en cours.
+  }
+});
+
+initTheme();
+loadState();
 render();

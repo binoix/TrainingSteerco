@@ -67,12 +67,73 @@ Valide la syntaxe JavaScript.
 - Les règles actuelles sont volontairement simples et explicables : pertinence de la technique pour le scénario sélectionné × écart de couverture.
 - Toute évolution du modèle de priorité doit rester compréhensible pour un comité de pilotage ou un responsable SOC.
 
+### Sécurité du rendu
+
+- Le rendu se fait par interpolation de chaînes dans `innerHTML` : **toute valeur
+  saisie par l’utilisateur doit passer par `escapeHtml()`** avant d’être
+  interpolée, en particulier dans un attribut.
+- Aujourd’hui `state.context` n’atteint le DOM qu’à un seul endroit
+  (`contextInput`). Le reste des interpolations ne manipule que des données
+  statiques du fichier. Si une nouvelle donnée utilisateur est affichée, penser à
+  l’échapper.
+
+### Persistance
+
+- L’état (`context`, `threatProfile`, `coverage`) est miroité dans `localStorage`
+  sous la clé `trainingsteerco-state`.
+- `saveState()` est appelé explicitement depuis les trois points de mutation de
+  `bindEvents()`, et non depuis `render()` : les champs de contexte ne
+  redéclenchent volontairement pas de rendu, pour ne pas perdre le focus pendant
+  la frappe, et seraient donc oubliés.
+- `loadState()` **valide chaque valeur avant de l’adopter** (scénario connu,
+  statut appartenant à `statusOrder`, techniques encore présentes dans le jeu de
+  données). Ne pas remplacer cette validation par une fusion directe : un
+  stockage périmé après modification du jeu de techniques casserait le rendu et
+  le scoring.
+- Les accès à `localStorage` sont encadrés par `try/catch` (navigation privée,
+  quota) : l’application doit rester utilisable en mémoire si le stockage échoue.
+- Toute modification du jeu de techniques doit rester compatible avec un
+  stockage écrit par une version antérieure.
+
 ### Interface et accessibilité
 
 - Maintenir une interface responsive sur mobile, tablette et desktop.
 - Préserver les libellés explicites des champs et contrôles.
 - Éviter les interactions qui ne fonctionnent qu’à la souris.
 - Conserver une hiérarchie claire des titres et sections : contexte, scénario de menace, heatmap, plan d’action.
+- Ne jamais véhiculer une information par la seule couleur : le statut de
+  couverture est doublé d’un libellé texte visible (`.technique-status`), et la
+  pertinence — signalée visuellement par la bordure — est reprise dans
+  l’`aria-label` de chaque cellule.
+- Conserver un ratio de contraste d’au moins 4.5:1 entre le fond d’une cellule
+  (`.status-blind`, `.status-partial`, `.status-covered`) et sa couleur de texte.
+  Vérifier le ratio en cas de changement de teinte, ne pas l’estimer à l’œil.
+- `render()` détruit tout l’arbre DOM : après un changement de statut, le focus
+  doit être rendu à la cellule activée, sans quoi la navigation au clavier
+  renvoie en haut de page. Préserver ce comportement.
+- Conserver un style `:focus-visible` explicite sur les cellules : l’anneau par
+  défaut du navigateur ressort mal sur les fonds colorés saturés.
+
+### Mode sombre
+
+- Les couleurs sensibles au thème sont des variables CSS sur `:root`,
+  surchargées sous `:root[data-theme='dark']`. En touchant une couleur
+  existante ou en ajoutant un nouvel élément coloré, vérifier s’il doit passer
+  par un token (`--bg`, `--surface`, `--surface-active`, `--text`,
+  `--text-secondary`, `--text-accent`, `--border`, `--score`) plutôt que par
+  une valeur en dur — sauf pour les paires fond+texte auto-portantes
+  (badges de statut, `.tag`, bouton principal) qui restent volontairement
+  fixes, car déjà contrastées indépendamment du thème.
+- Toute nouvelle valeur ajoutée au bloc `[data-theme='dark']` doit être
+  vérifiée au ratio WCAG (>= 4.5:1 pour du texte, >= 3:1 pour une bordure ou
+  un élément d’interface), pas choisie à l’œil.
+- `#theme-toggle` (dans `index.html`) doit rester un frère de `#app`, jamais
+  un enfant : `render()` reconstruit `#app` en entier à chaque interaction,
+  et un bouton recréé à chaque clic rejouerait son animation sur des actions
+  sans rapport avec le thème.
+- La préférence de thème est stockée sous une clé `localStorage` distincte de
+  celle de l’état d’évaluation, pour que `resetState()` ne la réinitialise
+  jamais.
 
 ### Style de code
 
@@ -109,7 +170,15 @@ Puis vérifier manuellement dans le navigateur que :
 - changer de scénario de menace recalcule la couverture pondérée et retrie le plan d’action ;
 - cliquer sur une cellule de la heatmap fait évoluer son statut (aveugle → partielle → couverte) ;
 - le plan d’action reste trié par priorité ;
-- l’export JSON contient les informations attendues.
+- l’export JSON contient les informations attendues ;
+- saisir un guillemet double dans un champ de contexte, puis déclencher un rendu,
+  n’altère ni la mise en page ni le contenu du champ ;
+- recharger la page restaure le contexte, le scénario et les statuts, et le
+  bouton **Réinitialiser** ramène à l’état de départ ;
+- un `localStorage` corrompu ou périmé (`localStorage.setItem('trainingsteerco-state', '{oops')`)
+  laisse l’application démarrer sur l’état par défaut, sans erreur console ;
+- atteindre une cellule au clavier puis l’activer à `Entrée` fait évoluer le
+  statut **et** conserve le focus sur cette cellule.
 
 ## Publication GitHub Pages
 
