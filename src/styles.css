@@ -117,12 +117,17 @@ input, textarea {
   color: #fff;
 }
 
+.technique-cell:focus-visible { outline: 3px solid #101828; outline-offset: 2px; }
+
 .technique-cell .technique-id { font-weight: 800; font-size: .8rem; }
 .technique-cell .technique-name { font-size: .75rem; opacity: .92; }
+.technique-cell .technique-status { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; opacity: .95; }
 
-.status-blind { background: #8d99ae; }
-.status-partial { background: #e9a23b; }
-.status-covered { background: #2a9d8f; }
+/* Statut doublé par un libellé texte : les couleurs ci-dessous respectent en
+   plus le ratio de contraste AA (4.5:1) avec la couleur de texte associée. */
+.status-blind { background: #5d6b7f; color: #fff; }
+.status-partial { background: #e9a23b; color: #3a2600; }
+.status-covered { background: #1f7a6e; color: #fff; }
 
 .weight-high { border-color: #e63946; box-shadow: 0 0 0 2px rgb(230 57 70 / .25); }
 .weight-medium { border-color: rgb(230 57 70 / .35); }
@@ -144,6 +149,8 @@ input, textarea {
   font-weight: 800;
 }
 
+.section-heading__actions { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+
 .section-heading button {
   border: 0;
   border-radius: 999px;
@@ -152,6 +159,12 @@ input, textarea {
   color: #fff;
   cursor: pointer;
   font-weight: 800;
+}
+
+.section-heading .button-secondary {
+  border: 1px solid #cbd7e4;
+  background: #f8fbfe;
+  color: #1d3557;
 }
 
 .empty { color: #667085; font-style: italic; }

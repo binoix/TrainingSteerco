@@ -10,6 +10,7 @@ MVP d’application web interactive pour cartographier la couverture de détecti
 - Plan d’action priorisé : techniques à traiter en premier, avec les sources de log à mobiliser pour combler l’écart.
 - Synthèse textuelle orientée comité de pilotage : couverture globale, angles morts critiques, sources de log à instrumenter.
 - Export JSON du contexte, du scénario et du plan d’action.
+- Sauvegarde automatique dans le navigateur : le contexte, le scénario et les statuts de couverture sont conservés d’une session à l’autre, et un bouton **Réinitialiser** permet de revenir à la photographie de départ.
 
 ## Démarrage
 
