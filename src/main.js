@@ -70,6 +70,7 @@ const initialCoverage = {
 };
 
 const storageKey = 'trainingsteerco-state';
+const themeStorageKey = 'trainingsteerco-theme';
 
 const defaultContext = {
   organisation: 'Organisation exemple',
@@ -421,5 +422,40 @@ function bindEvents() {
   });
 }
 
+// Le bouton de thème vit hors de #app (voir index.html) : contrairement au
+// reste de l'interface, il n'est jamais recréé par render(), donc son
+// écouteur se branche une seule fois ici plutôt que dans bindEvents().
+const themeToggle = document.querySelector('#theme-toggle');
+
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  themeToggle.setAttribute('aria-pressed', String(theme === 'dark'));
+  themeToggle.setAttribute('aria-label', theme === 'dark' ? 'Activer le mode clair' : 'Activer le mode sombre');
+}
+
+function initTheme() {
+  let stored;
+  try {
+    stored = localStorage.getItem(themeStorageKey);
+  } catch {
+    stored = null;
+  }
+  const theme = stored === 'dark' || stored === 'light'
+    ? stored
+    : (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  applyTheme(theme);
+}
+
+themeToggle.addEventListener('click', () => {
+  const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  try {
+    localStorage.setItem(themeStorageKey, next);
+  } catch {
+    // Stockage indisponible : le thème reste actif pour la session en cours.
+  }
+});
+
+initTheme();
 loadState();
 render();

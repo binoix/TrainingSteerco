@@ -114,6 +114,27 @@ Valide la syntaxe JavaScript.
 - Conserver un style `:focus-visible` explicite sur les cellules : l’anneau par
   défaut du navigateur ressort mal sur les fonds colorés saturés.
 
+### Mode sombre
+
+- Les couleurs sensibles au thème sont des variables CSS sur `:root`,
+  surchargées sous `:root[data-theme='dark']`. En touchant une couleur
+  existante ou en ajoutant un nouvel élément coloré, vérifier s’il doit passer
+  par un token (`--bg`, `--surface`, `--surface-active`, `--text`,
+  `--text-secondary`, `--text-accent`, `--border`, `--score`) plutôt que par
+  une valeur en dur — sauf pour les paires fond+texte auto-portantes
+  (badges de statut, `.tag`, bouton principal) qui restent volontairement
+  fixes, car déjà contrastées indépendamment du thème.
+- Toute nouvelle valeur ajoutée au bloc `[data-theme='dark']` doit être
+  vérifiée au ratio WCAG (>= 4.5:1 pour du texte, >= 3:1 pour une bordure ou
+  un élément d’interface), pas choisie à l’œil.
+- `#theme-toggle` (dans `index.html`) doit rester un frère de `#app`, jamais
+  un enfant : `render()` reconstruit `#app` en entier à chaque interaction,
+  et un bouton recréé à chaque clic rejouerait son animation sur des actions
+  sans rapport avec le thème.
+- La préférence de thème est stockée sous une clé `localStorage` distincte de
+  celle de l’état d’évaluation, pour que `resetState()` ne la réinitialise
+  jamais.
+
 ### Style de code
 
 - Utiliser du JavaScript moderne sans transpilation.
