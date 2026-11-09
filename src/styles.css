@@ -222,10 +222,15 @@ input, textarea {
   place-items: center;
   width: 44px;
   height: 44px;
-  border: 1px solid rgb(255 255 255 / .18);
+  border: 2px solid rgb(255 255 255 / .85);
   border-radius: 999px;
-  background: rgb(255 255 255 / .12);
-  backdrop-filter: blur(12px);
+  /* Fond opaque et auto-porteur, pas une vitre translucide : le bouton est
+     fixe et passe donc aussi bien devant le hero sombre que devant des
+     panels clairs ou sombres au défilement — un effet verre dépoli calé sur
+     le hero devenait invisible une fois posé sur un panel de la même teinte
+     (signalé en revue : AGENTS.md#L119-L126). */
+  background: #2a9d8f;
+  box-shadow: 0 4px 16px rgb(16 24 40 / .35);
   color: #fff;
   cursor: pointer;
 }
